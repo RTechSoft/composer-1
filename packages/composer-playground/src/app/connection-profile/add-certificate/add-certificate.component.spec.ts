@@ -164,41 +164,45 @@ describe('AddCertificateComponent', () => {
         it('should call close the activeModal', () => {
 
             component['cert'] = 'MuchCertificate';
+            component['sslTargetNameOverride'] = 'SuchOverride';
 
             // call the method
             component.addCertificate();
 
-            mockModalSpy.should.have.been.calledWith('MuchCertificate');
+            mockModalSpy.should.have.been.calledWith({cert: 'MuchCertificate', sslTargetNameOverride: 'SuchOverride'});
         });
 
         it('should handle strings with encoded newlines (windows format 1) in certs correctly', () => {
 
             component['cert'] = 'MuchCertificate\\r\\nFollowon\\r\\nFinal';
+            component['sslTargetNameOverride'] = 'SuchOverride';
 
             // call the method
             component.addCertificate();
 
-            mockModalSpy.should.have.been.calledWith('MuchCertificate\nFollowon\nFinal');
+            mockModalSpy.should.have.been.calledWith({cert: 'MuchCertificate\nFollowon\nFinal', sslTargetNameOverride: 'SuchOverride'});
         });
 
         it('should handle strings with encoded newlines (windows format 2) in certs correctly', () => {
 
             component['cert'] = 'MuchCertificate\\n\\rFollowon\\n\\rFinal';
+            component['sslTargetNameOverride'] = 'SuchOverride';
 
             // call the method
             component.addCertificate();
 
-            mockModalSpy.should.have.been.calledWith('MuchCertificate\nFollowon\nFinal');
+            mockModalSpy.should.have.been.calledWith({cert: 'MuchCertificate\nFollowon\nFinal', sslTargetNameOverride: 'SuchOverride'});
         });
 
         it('should handle strings with encoded newlines (unix format) in certs correctly', () => {
 
             component['cert'] = 'MuchCertificate\\nFollowon\\nFinal';
+            component['sslTargetNameOverride'] = 'SuchOverride';
 
             // call the method
             component.addCertificate();
 
-            mockModalSpy.should.have.been.calledWith('MuchCertificate\nFollowon\nFinal');
+            mockModalSpy.should.have.been.calledWith({cert: 'MuchCertificate\nFollowon\nFinal', sslTargetNameOverride: 'SuchOverride'});
         });
     });
 

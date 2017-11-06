@@ -13,7 +13,7 @@ import * as sinon from 'sinon';
 
 let util = require('util');
 
-describe('ConnectionProfileComponent', () => {
+fdescribe('ConnectionProfileComponent', () => {
     let component: ConnectionProfileComponent;
     let fixture: ComponentFixture<ConnectionProfileComponent>;
 
@@ -60,48 +60,51 @@ describe('ConnectionProfileComponent', () => {
                 name: null,
                 description: null,
                 version: '1.0.0',
-                organisation: 'Org1',
+                organization: 'Org1',
                 mspid: 'Org1MSP',
                 channel: 'composerchannel',
-                keyValStore: '/tmp/keyValStore'
+                commitTimeout: null
             });
 
             component['orderers'].should.deep.equal([{
                 name: 'orderer.example.com',
-                url: 'grpcs://localhost:7050',
+                url: 'grpc://localhost:7050',
                 grpcOptions: {
-                    sslTargetNameOverride: null
-                },
-                tlsCACerts: {
-                    pem: null
+                  sslTargetNameOverride: null,
+                  grpcMaxSendMessageLength: null,
+                  grpcHttp2KeepAliveTime: null
                 }
             }]);
 
-            component['ordererTimeout'].should.equal('3s');
+            component['ordererTimeout'].should.equal('30');
 
             component['peers'].should.deep.equal([{
                 name: 'peer.example.com',
-                url: 'grpcs://localhost:7051',
-                eventUrl: 'grpcs://localhost:7053',
+                url: 'grpc://localhost:7051',
+                eventUrl: 'grpc://localhost:7053',
                 grpcOptions: {
-                    sslTargetNameOverride: null
+                    sslTargetNameOverride: null,
+                    grpcMaxSendMessageLength: null,
+                    grpcHttp2KeepAliveTime: null
                 },
-                tlsCACerts: {
-                    pem: null
-                }
+                organization: true,
+                endorsingPeer: true,
+                chaincodeQuery: true,
+                ledgerQuery: true,
+                eventSource: true
             }]);
 
             component['peerTimeOut'].should.deep.equal({
-                endorser: '3s',
-                eventHub: '3s',
-                eventReg: '3s'
+                endorser: '30',
+                eventHub: '30',
+                eventReg: '30'
             });
 
             component['ca'].should.deep.equal({
                 url: 'http://localhost:7054',
                 caName: null,
-                tlsCACerts: {
-                    pem: null
+                httpOptions: {
+                  verify: true
                 }
             });
         });
@@ -113,18 +116,18 @@ describe('ConnectionProfileComponent', () => {
 
                 version: '2.8',
                 client: {
-                    organisation: 'myOrg',
+                    organization: 'myOrg',
                     credentialStore: {
                         path: '/myCredentials'
                     },
                     connection: {
                         timeout: {
                             peer: {
-                                endorser: '5s',
-                                eventHub: '5s',
-                                eventReg: '5s'
+                                endorser: '5',
+                                eventHub: '5',
+                                eventReg: '5'
                             },
-                            orderer: '5s'
+                            orderer: '5'
                         }
                     }
                 },
@@ -139,7 +142,7 @@ describe('ConnectionProfileComponent', () => {
                         },
                     }
                 },
-                organisations: {
+                organizations: {
                     myOrg: {
                         mspid: 'myOrg1MSP',
 
@@ -158,7 +161,11 @@ describe('ConnectionProfileComponent', () => {
                 orderers: {
                     myOrderer: {
                         url: 'myUrl',
-                        grpcOptions: {}
+                        grpcOptions: {
+                          'ssl-target-name-override': 'myOrderer',
+                          'grpc-max-send-message-length': 15,
+                          'grpc.http2.keepalive_time': 20
+                        }
                         ,
                         tlsCACerts: {
                             pem: 'myCert'
@@ -169,16 +176,23 @@ describe('ConnectionProfileComponent', () => {
                     myPeer1: {
                         url: 'myUrl',
                         eventUrl: 'myEventUrl',
-                        grpcOptions: {},
+                        grpcOptions: {
+                          'ssl-target-name-override': 'myPeer1',
+                          'grpc-max-send-message-length': 25,
+                          'grpc.http2.keepalive_time': 30
+                        },
                         tlsCACerts: {
                             pem: 'myCert'
                         }
                     },
                     myPeer2: {
-                        url:
-                            'myUrl2',
+                        url: 'myUrl2',
                         eventUrl: 'myEventUrl2',
-                        grpcOptions: {},
+                        grpcOptions: {
+                          'ssl-target-name-override': 'myPeer2',
+                          'grpc-max-send-message-length': 35,
+                          'grpc.http2.keepalive_time': 40
+                        },
                         tlsCACerts: {
                             pem: 'myCert2'
                         }
@@ -205,9 +219,7 @@ describe('ConnectionProfileComponent', () => {
             };
 
             component['connectionProfileData']['x-type'] = 'hlfv1';
-            component['connectionProfileData'].orderers.myOrderer.grpcOptions['ssl-target-name-override'] = 'myOrderer';
-            component['connectionProfileData'].peers.myPeer1.grpcOptions['ssl-target-name-override'] = 'myPeer1';
-            component['connectionProfileData'].peers.myPeer2.grpcOptions['ssl-target-name-override'] = 'myPeer2';
+            component['connectionProfileData']['x-commitTimeout'] = 100;
 
             component.startEditing();
 
@@ -215,10 +227,10 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
-                organisation: 'myOrg',
+                organization: 'myOrg',
                 mspid: 'myOrg1MSP',
                 channel: 'myChannel',
-                keyValStore: '/myCredentials'
+                commitTimeout: 100
             });
 
             component['orderers'].length.should.equal(1);
@@ -226,7 +238,9 @@ describe('ConnectionProfileComponent', () => {
             component['orderers'][0].should.deep.equal({
                 url: 'myUrl',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myOrderer'
+                    sslTargetNameOverride: 'myOrderer',
+                    grpcMaxSendMessageLength: 15,
+                    grpcHttp2KeepAliveTime: 20
                 },
                 tlsCACerts: {
                     pem: 'myCert'
@@ -234,7 +248,7 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myOrderer'
             });
 
-            component['ordererTimeout'].should.equal('5s');
+            component['ordererTimeout'].should.equal('5');
 
             component['peers'].length.should.equal(2);
 
@@ -243,7 +257,9 @@ describe('ConnectionProfileComponent', () => {
                 url: 'myUrl',
                 eventUrl: 'myEventUrl',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myPeer1'
+                    sslTargetNameOverride: 'myPeer1',
+                    grpcMaxSendMessageLength: 25,
+                    grpcHttp2KeepAliveTime: 30
                 },
                 tlsCACerts: {
                     pem: 'myCert'
@@ -255,7 +271,9 @@ describe('ConnectionProfileComponent', () => {
                 url: 'myUrl2',
                 eventUrl: 'myEventUrl2',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myPeer2'
+                  sslTargetNameOverride: 'myPeer2',
+                  grpcMaxSendMessageLength: 35,
+                  grpcHttp2KeepAliveTime: 40
                 },
                 tlsCACerts: {
                     pem: 'myCert2'
@@ -263,9 +281,9 @@ describe('ConnectionProfileComponent', () => {
             });
 
             component['peerTimeOut'].should.deep.equal({
-                endorser: '5s',
-                eventHub: '5s',
-                eventReg: '5s'
+                endorser: '5',
+                eventHub: '5',
+                eventReg: '5'
             });
 
             component['ca'].should.deep.equal({
@@ -284,18 +302,18 @@ describe('ConnectionProfileComponent', () => {
 
                 version: '2.8',
                 client: {
-                    organisation: 'myOrg',
+                    organization: 'myOrg',
                     credentialStore: {
                         path: '/myCredentials'
                     },
                     connection: {
                         timeout: {
                             peer: {
-                                endorser: '5s',
-                                eventHub: '5s',
-                                eventReg: '5s'
+                                endorser: '5',
+                                eventHub: '5',
+                                eventReg: '5'
                             },
-                            orderer: '5s'
+                            orderer: '5'
                         }
                     }
                 },
@@ -310,7 +328,7 @@ describe('ConnectionProfileComponent', () => {
                         },
                     }
                 },
-                organisations: {
+                organizations: {
                     myOrg: {
                         mspid: 'myOrg1MSP',
 
@@ -372,6 +390,7 @@ describe('ConnectionProfileComponent', () => {
             };
 
             component['connectionProfileData']['x-type'] = 'hlfv1';
+            component['connectionProfileData']['x-commitTimeout'] = 100;
 
             component.startEditing();
 
@@ -379,10 +398,10 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
-                organisation: 'myOrg',
+                organization: 'myOrg',
                 mspid: 'myOrg1MSP',
                 channel: 'myChannel',
-                keyValStore: '/myCredentials'
+                commitTimeout: 100
             });
 
             component['orderers'].length.should.equal(1);
@@ -396,7 +415,7 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myOrderer'
             });
 
-            component['ordererTimeout'].should.equal('5s');
+            component['ordererTimeout'].should.equal('5');
 
             component['peers'].length.should.equal(2);
 
@@ -421,9 +440,9 @@ describe('ConnectionProfileComponent', () => {
             });
 
             component['peerTimeOut'].should.deep.equal({
-                endorser: '5s',
-                eventHub: '5s',
-                eventReg: '5s'
+                endorser: '5',
+                eventHub: '5',
+                eventReg: '5'
             });
 
             component['ca'].should.deep.equal({
@@ -458,9 +477,11 @@ describe('ConnectionProfileComponent', () => {
 
             component['orderers'][1].should.deep.equal({
                 name: 'orderer1.example.com',
-                url: 'grpcs://localhost:7050',
+                url: 'grpc://localhost:7050',
                 grpcOptions: {
-                    sslTargetNameOverride: null
+                    sslTargetNameOverride: null,
+                    grpcMaxSendMessageLength: null,
+                    grpcHttp2KeepAliveTime: null
                 }
             });
         });
@@ -492,12 +513,19 @@ describe('ConnectionProfileComponent', () => {
             component['peers'][0].should.deep.equal(component['defaultPeer']);
 
             component['peers'][1].should.deep.equal({
-                name: 'peer1.example.com',
-                url: 'grpcs://localhost:7051',
-                eventUrl: 'grpcs://localhost:7053',
-                grpcOptions: {
-                    sslTargetNameOverride: null
-                }
+              name: 'peer1.example.com',
+              url: 'grpc://localhost:7051',
+              eventUrl: 'grpc://localhost:7053',
+              grpcOptions: {
+                  sslTargetNameOverride: null,
+                  grpcMaxSendMessageLength: null,
+                  grpcHttp2KeepAliveTime: null
+              },
+              organization: true,
+              endorsingPeer: true,
+              chaincodeQuery: true,
+              ledgerQuery: true,
+              eventSource: true
             });
         });
     });
@@ -516,7 +544,7 @@ describe('ConnectionProfileComponent', () => {
         });
     });
 
-    describe('onSubmit', () => {
+    fdescribe('onSubmit', () => {
         it('should ignore all other key presses apart from enter', () => {
 
             let event = {
@@ -531,25 +559,26 @@ describe('ConnectionProfileComponent', () => {
         it('should submit v1 profile form', fakeAsync(() => {
             let completedProfile = {
                 'x-type': 'hlfv1',
+                'x-commitTimeout': 100,
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
                 client: {
-                    organisation: 'myOrg',
+                    organization: 'myOrg',
                     credentialStore: {
-                        path: '/myCredentials',
+                        path: '/Users/user/.composer-credentials',
                         cryptoStore: {
-                            path: '/myCredentials'
+                            path: '/Users/user/.composer-credentials'
                         },
                     },
                     connection: {
                         timeout: {
                             peer: {
-                                endorser: '5s',
-                                eventHub: '5s',
-                                eventReg: '5s'
+                                endorser: '5',
+                                eventHub: '5',
+                                eventReg: '5'
                             },
-                            orderer: '5s'
+                            orderer: '5'
                         }
                     }
                 },
@@ -564,7 +593,7 @@ describe('ConnectionProfileComponent', () => {
                         },
                     }
                 },
-                organisations: {
+                organizations: {
                     myOrg: {
                         mspid: 'myOrg1MSP',
                         peers: ['myPeer1', 'myPeer2'],
@@ -579,7 +608,9 @@ describe('ConnectionProfileComponent', () => {
                             pem: 'myCert'
                         },
                         grpcOptions: {
-                            'ssl-target-name-override': 'myOrderer'
+                            'ssl-target-name-override': 'myOrderer',
+                            'grpc-max-send-message-length': 15,
+                            'grpc.http2.keepalive_time': 20
                         }
                     }
                 },
@@ -591,8 +622,14 @@ describe('ConnectionProfileComponent', () => {
                             pem: 'myCert'
                         },
                         grpcOptions: {
-                            'ssl-target-name-override': 'myPeer1'
-                        }
+                            'ssl-target-name-override': 'myPeer1',
+                            'grpc-max-send-message-length': 25,
+                            'grpc.http2.keepalive_time': 30
+                        },
+                        endorsingPeer: true,
+                        ledgerQuery: true,
+                        chaincodeQuery: true,
+                        eventSource: true
                     },
                     myPeer2: {
                         url:
@@ -602,8 +639,14 @@ describe('ConnectionProfileComponent', () => {
                             pem: 'myCert2'
                         },
                         grpcOptions: {
-                            'ssl-target-name-override': 'myPeer2'
-                        }
+                            'ssl-target-name-override': 'myPeer2',
+                            'grpc-max-send-message-length': 35,
+                            'grpc.http2.keepalive_time': 40
+                        },
+                        endorsingPeer: true,
+                        ledgerQuery: true,
+                        chaincodeQuery: true,
+                        eventSource: true
                     }
                 },
                 certificateAuthorities: {
@@ -626,16 +669,18 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
-                organisation: 'myOrg',
+                organization: 'myOrg',
                 mspid: 'myOrg1MSP',
                 channel: 'myChannel',
-                keyValStore: '/myCredentials'
+                commitTimeout: 100
             };
 
             component['orderers'] = [{
                 url: 'myUrl',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myOrderer'
+                    sslTargetNameOverride: 'myOrderer',
+                    grpcMaxSendMessageLength: 15,
+                    grpcHttp2KeepAliveTime: 20
                 },
                 tlsCACerts: {
                     pem: 'myCert'
@@ -643,7 +688,7 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myOrderer'
             }];
 
-            component['ordererTimeout'] = '5s';
+            component['ordererTimeout'] = '5';
 
             component['peers'] = [];
 
@@ -652,11 +697,18 @@ describe('ConnectionProfileComponent', () => {
                 url: 'myUrl',
                 eventUrl: 'myEventUrl',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myPeer1'
+                    sslTargetNameOverride: 'myPeer1',
+                    grpcMaxSendMessageLength: 25,
+                    grpcHttp2KeepAliveTime: 30
                 },
                 tlsCACerts: {
                     pem: 'myCert'
                 },
+                organization: true,
+                endorsingPeer: true,
+                chaincodeQuery: true,
+                ledgerQuery: true,
+                eventSource: true
             });
 
             component['peers'].push({
@@ -664,17 +716,24 @@ describe('ConnectionProfileComponent', () => {
                 url: 'myUrl2',
                 eventUrl: 'myEventUrl2',
                 grpcOptions: {
-                    sslTargetNameOverride: 'myPeer2'
+                    sslTargetNameOverride: 'myPeer2',
+                    grpcMaxSendMessageLength: 35,
+                    grpcHttp2KeepAliveTime: 40
                 },
                 tlsCACerts: {
                     pem: 'myCert2'
-                }
+                },
+                organization: true,
+                endorsingPeer: true,
+                chaincodeQuery: true,
+                ledgerQuery: true,
+                eventSource: true
             });
 
             component['peerTimeOut'] = {
-                endorser: '5s',
-                eventHub: '5s',
-                eventReg: '5s'
+                endorser: '5',
+                eventHub: '5',
+                eventReg: '5'
             };
 
             component['ca'] = {
@@ -708,25 +767,26 @@ describe('ConnectionProfileComponent', () => {
         it('should submit v1 profile with no certs and no grpc options and no caName', fakeAsync(() => {
             let completedProfile = {
                 'x-type': 'hlfv1',
+                'x-commitTimeout': 100,
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
                 client: {
-                    organisation: 'myOrg',
+                    organization: 'myOrg',
                     credentialStore: {
-                        path: '/myCredentials',
+                        path: '/Users/user/.composer-credentials',
                         cryptoStore: {
-                            path: '/myCredentials'
+                            path: '/Users/user/.composer-credentials'
                         }
                     },
                     connection: {
                         timeout: {
                             peer: {
-                                endorser: '5s',
-                                eventHub: '5s',
-                                eventReg: '5s'
+                                endorser: '5',
+                                eventHub: '5',
+                                eventReg: '5'
                             },
-                            orderer: '5s'
+                            orderer: '5'
                         }
                     }
                 },
@@ -741,7 +801,7 @@ describe('ConnectionProfileComponent', () => {
                         },
                     }
                 },
-                organisations: {
+                organizations: {
                     myOrg: {
                         mspid: 'myOrg1MSP',
                         peers: ['myPeer1', 'myPeer2'],
@@ -782,10 +842,10 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
-                organisation: 'myOrg',
+                organization: 'myOrg',
                 mspid: 'myOrg1MSP',
                 channel: 'myChannel',
-                keyValStore: '/myCredentials'
+                commitTimeout: 100
             };
 
             component['orderers'] = [{
@@ -794,7 +854,7 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myOrderer'
             }];
 
-            component['ordererTimeout'] = '5s';
+            component['ordererTimeout'] = '5';
 
             component['peers'] = [];
 
@@ -813,9 +873,9 @@ describe('ConnectionProfileComponent', () => {
             });
 
             component['peerTimeOut'] = {
-                endorser: '5s',
-                eventHub: '5s',
-                eventReg: '5s'
+                endorser: '5',
+                eventHub: '5',
+                eventReg: '5'
             };
 
             component['ca'] = {
@@ -845,25 +905,26 @@ describe('ConnectionProfileComponent', () => {
         it('should submit v1 profile form with a changed name', fakeAsync(() => {
             let completedProfile = {
                 'x-type': 'hlfv1',
+                'x-commitTimeout': 100,
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
                 client: {
-                    organisation: 'myOrg',
+                    organization: 'myOrg',
                     credentialStore: {
-                        path: '/myCredentials',
+                        path: '/Users/user/.composer-credentials',
                         cryptoStore: {
-                            path: '/myCredentials'
+                            path: '/Users/user/.composer-credentials'
                         }
                     },
                     connection: {
                         timeout: {
                             peer: {
-                                endorser: '5s',
-                                eventHub: '5s',
-                                eventReg: '5s'
+                                endorser: '5',
+                                eventHub: '5',
+                                eventReg: '5'
                             },
-                            orderer: '5s'
+                            orderer: '5'
                         }
                     }
                 },
@@ -878,7 +939,7 @@ describe('ConnectionProfileComponent', () => {
                         },
                     }
                 },
-                organisations: {
+                organizations: {
                     myOrg: {
                         mspid: 'myOrg1MSP',
                         peers: ['myPeer1', 'myPeer2'],
@@ -941,10 +1002,10 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myProfile',
                 description: 'myDescription',
                 version: '2.8',
-                organisation: 'myOrg',
+                organization: 'myOrg',
                 mspid: 'myOrg1MSP',
                 channel: 'myChannel',
-                keyValStore: '/myCredentials'
+                commitTimeout: 100
             };
 
             component['orderers'] = [{
@@ -958,7 +1019,7 @@ describe('ConnectionProfileComponent', () => {
                 name: 'myOrderer'
             }];
 
-            component['ordererTimeout'] = '5s';
+            component['ordererTimeout'] = '5';
 
             component['peers'] = [];
 
@@ -987,9 +1048,9 @@ describe('ConnectionProfileComponent', () => {
             });
 
             component['peerTimeOut'] = {
-                endorser: '5s',
-                eventHub: '5s',
-                eventReg: '5s'
+                endorser: '5',
+                eventHub: '5',
+                eventReg: '5'
             };
 
             component['ca'] = {
